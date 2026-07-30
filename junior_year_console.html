@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Junior Year Console</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --paper:#EEF3EC;
+  --grid:#CBD9CE;
+  --ink:#1F3140;
+  --pencil:#5B6B6A;
+  --copper:#B5651D;
+  --green:#3E8E5C;
+  --amber:#C9891E;
+  --red:#B84C3C;
+  --card:#F7FAF6;
+  --border:#20344022;
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:
+    linear-gradient(var(--grid) 1px, transparent 1px) 0 0/28px 28px,
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/28px 28px,
+    var(--paper);
+  font-family:'IBM Plex Mono', monospace;
+  color:var(--ink);
+  padding:24px;
+  min-height:100vh;
+}
+
+h1,h2,h3{font-family:'Space Grotesk',sans-serif; margin:0;}
+
+.header{
+  display:flex; justify-content:space-between; align-items:flex-end;
+  border-bottom:3px solid var(--ink); padding-bottom:14px; margin-bottom:20px;
+  flex-wrap:wrap; gap:12px;
+}
+.header h1{font-size:26px; letter-spacing:0.5px;}
+.header .subtitle{font-size:12px; color:var(--pencil); margin-top:4px;}
+.phase-toggle{display:flex; gap:6px;}
+.phase-toggle button{
+  font-family:'Space Grotesk',sans-serif; font-size:11px; font-weight:600;
+  padding:8px 12px; border:2px solid var(--ink); background:var(--card);
+  cursor:pointer; border-radius:3px; color:var(--ink);
+}
+.phase-toggle button.active{background:var(--ink); color:var(--paper);}
+
+.rail{
+  display:flex; gap:10px; flex-wrap:wrap; margin-bottom:22px;
+}
+.rail-chip{
+  display:flex; align-items:center; gap:6px;
+  background:var(--card); border:1px solid var(--border); border-radius:20px;
+  padding:5px 12px; font-size:11px;
+}
+.led{width:9px; height:9px; border-radius:50%; display:inline-block; flex-shrink:0;
+  box-shadow:0 0 4px currentColor;}
+.led.green{background:var(--green); color:var(--green);}
+.led.amber{background:var(--amber); color:var(--amber);}
+.led.red{background:var(--red); color:var(--red);}
+
+.grid{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr));
+  gap:18px;
+}
+.card{
+  background:var(--card); border:1.5px solid var(--ink);
+  border-radius:6px; padding:16px 18px; position:relative;
+}
+.card::before{
+  content:''; position:absolute; top:8px; left:-5px; width:8px; height:8px;
+  background:var(--ink); border-radius:50%;
+}
+.card::after{
+  content:''; position:absolute; bottom:8px; right:-5px; width:8px; height:8px;
+  background:var(--ink); border-radius:50%;
+}
+.card-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+.card-head h2{font-size:15px;}
+.status-dot{cursor:pointer; width:12px; height:12px; border-radius:50%; border:1.5px solid var(--ink);}
+.status-dot.green{background:var(--green);}
+.status-dot.amber{background:var(--amber);}
+.status-dot.red{background:var(--red);}
+
+.wide{grid-column:1/-1;}
+
+table{width:100%; border-collapse:collapse; font-size:11.5px;}
+th{text-align:left; font-family:'Space Grotesk',sans-serif; font-size:10px; text-transform:uppercase;
+  letter-spacing:0.5px; color:var(--pencil); border-bottom:1.5px solid var(--ink); padding:4px 6px;}
+td{padding:4px 6px; border-bottom:1px solid var(--border);}
+input[type=text],input[type=date],input[type=number],select,textarea{
+  font-family:'IBM Plex Mono',monospace; font-size:11.5px; border:1px solid var(--border);
+  background:#fff; padding:4px 5px; border-radius:3px; width:100%; color:var(--ink);
+}
+textarea{resize:vertical; min-height:50px;}
+.row-actions{display:flex; gap:4px;}
+.icon-btn{
+  border:1px solid var(--ink); background:var(--card); border-radius:3px; cursor:pointer;
+  font-size:11px; padding:3px 7px; font-family:'Space Grotesk',sans-serif;
+}
+.add-btn{
+  margin-top:8px; border:1.5px dashed var(--copper); color:var(--copper); background:transparent;
+  padding:6px 10px; border-radius:4px; cursor:pointer; font-family:'Space Grotesk',sans-serif;
+  font-size:11px; font-weight:600;
+}
+.hint{font-size:10.5px; color:var(--pencil); margin-top:6px; line-height:1.4;}
+
+.habit-grid{display:grid; grid-template-columns:1fr repeat(7,26px); gap:4px; align-items:center; font-size:10.5px;}
+.habit-grid .dh{text-align:center; font-weight:600; color:var(--pencil);}
+.habit-grid input[type=checkbox]{width:16px; height:16px; margin:0 auto; display:block;}
+.habit-name-row{display:flex; align-items:center; gap:6px; margin-bottom:6px;}
+.habit-name-row input[type=text]{flex:1;}
+
+.stat-line{display:flex; justify-content:space-between; font-size:12px; margin:6px 0;}
+.stat-line label{color:var(--pencil);}
+.protein-bar-wrap{background:#fff; border:1px solid var(--border); border-radius:4px; height:14px; overflow:hidden; margin-top:4px;}
+.protein-bar{height:100%; background:var(--green); transition:width .3s;}
+
+.save-note{position:fixed; bottom:14px; right:18px; font-size:10.5px; color:var(--pencil); opacity:0; transition:opacity .3s;}
+.save-note.show{opacity:1;}
+
+::placeholder{color:#9AA6A5;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>&#9670; JUNIOR YEAR CONSOLE</h1>
+    <div class="subtitle">EE '28 &middot; UIUC &middot; power systems / robotics / AI hardware track</div>
+  </div>
+  <div class="phase-toggle" id="phaseToggle">
+    <button data-phase="wrapup">INTERNSHIP WRAP-UP</button>
+    <button data-phase="transition">JUNIOR TRANSITION</button>
+    <button data-phase="recruiting">RECRUITING SEASON</button>
+  </div>
+</div>
+
+<div class="rail" id="statusRail"></div>
+
+<div class="grid">
+
+  <div class="card wide" id="card-wrapup">
+    <div class="card-head"><h2>01 &mdash; Internship Wrap-Up Retro</h2><div class="status-dot green" data-key="wrapup"></div></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+      <div><label class="hint">Key wins this internship</label><textarea data-field="wins" placeholder="Deliverables shipped, systems touched, impact..."></textarea></div>
+      <div><label class="hint">Skills / technical gains</label><textarea data-field="skills" placeholder="Tools, hardware, workflows learned at John Deere..."></textarea></div>
+      <div><label class="hint">People to follow up with (manager, mentors, team)</label><textarea data-field="contacts" placeholder="Name — how to stay in touch / LinkedIn note plan"></textarea></div>
+      <div><label class="hint">Open loops / return-offer or full-time signals</label><textarea data-field="loops" placeholder="Any conversion track, timeline, next steps..."></textarea></div>
+    </div>
+  </div>
+
+  <div class="card" id="card-recruiting">
+    <div class="card-head"><h2>02 &mdash; Recruiting: Summer 2027 Cycle</h2><div class="status-dot amber" data-key="recruiting"></div></div>
+    <table>
+      <thead><tr><th>Company</th><th>Role</th><th>Stage</th><th>Deadline</th><th></th></tr></thead>
+      <tbody id="recruitBody"></tbody>
+    </table>
+    <button class="add-btn" id="addRecruit">+ add application</button>
+    <div class="hint">Stages: Researching &rarr; Applied &rarr; OA &rarr; Interviewing &rarr; Offer &rarr; Closed</div>
+  </div>
+
+  <div class="card" id="card-habits">
+    <div class="card-head"><h2>03 &mdash; Habit Tracker</h2><div class="status-dot green" data-key="habits"></div></div>
+    <div id="habitList"></div>
+    <button class="add-btn" id="addHabit">+ add habit</button>
+    <button class="icon-btn" id="resetWeek" style="margin-top:8px;">reset week</button>
+  </div>
+
+  <div class="card" id="card-fitness">
+    <div class="card-head"><h2>04 &mdash; Fitness &amp; Protein</h2><div class="status-dot green" data-key="fitness"></div></div>
+    <div class="stat-line"><label>Protein target (g/day)</label><input type="number" id="proteinTarget" style="width:70px;"></div>
+    <div class="stat-line"><label>Today's intake (g)</label><input type="number" id="proteinToday" style="width:70px;"></div>
+    <div class="protein-bar-wrap"><div class="protein-bar" id="proteinBar"></div></div>
+    <div class="hint" id="proteinPct"></div>
+    <label class="hint" style="display:block; margin-top:10px;">Marathon training / pull-up progress log</label>
+    <textarea id="trainingLog" placeholder="Weekly mileage, long run notes, pull-up rep progress..."></textarea>
+  </div>
+
+  <div class="card" id="card-finance">
+    <div class="card-head"><h2>05 &mdash; Finance Snapshot</h2><div class="status-dot green" data-key="finance"></div></div>
+    <div class="stat-line"><label>Emergency fund ($)</label><input type="number" id="emergencyFund" style="width:100px;"></div>
+    <div class="stat-line"><label>Investing / month ($)</label><input type="number" id="investingMonth" style="width:100px;"></div>
+    <div class="stat-line"><label>Internship pay banked ($)</label><input type="number" id="internPay" style="width:100px;"></div>
+    <textarea id="financeNotes" placeholder="Notes: Roth IRA, brokerage, budget adjustments for school year..."></textarea>
+  </div>
+
+  <div class="card" id="card-writing">
+    <div class="card-head"><h2>06 &mdash; Writing / Content Tracker</h2><div class="status-dot amber" data-key="writing"></div></div>
+    <table>
+      <thead><tr><th>Title</th><th>Platform</th><th>Status</th><th>Date</th><th></th></tr></thead>
+      <tbody id="writingBody"></tbody>
+    </table>
+    <button class="add-btn" id="addWriting">+ add post idea</button>
+  </div>
+
+  <div class="card" id="card-reading">
+    <div class="card-head"><h2>07 &mdash; Reading List</h2><div class="status-dot green" data-key="reading"></div></div>
+    <table>
+      <thead><tr><th>Title</th><th>Status</th><th></th></tr></thead>
+      <tbody id="readingBody"></tbody>
+    </table>
+    <button class="add-btn" id="addReading">+ add book</button>
+  </div>
+
+</div>
+
+<div class="save-note" id="saveNote">saved</div>
+
+<script>
+const DEFAULT_STATE = {
+  phase: 'transition',
+  statusDots: { wrapup:'green', recruiting:'amber', habits:'green', fitness:'green', finance:'green', writing:'amber', reading:'green' },
+  wrapupText: { wins:'', skills:'', contacts:'', loops:'' },
+  recruiting: [],
+  habits: [{name:'Protein target hit', days:[false,false,false,false,false,false,false]}, {name:'Run / gym session', days:[false,false,false,false,false,false,false]}],
+  proteinTarget: 130, proteinToday: 0,
+  trainingLog: '',
+  emergencyFund: 0, investingMonth: 0, internPay: 0, financeNotes: '',
+  writing: [],
+  reading: []
+};
+
+let state = structuredClone(DEFAULT_STATE);
+const STORAGE_KEY = 'junior-year-console-state';
+let saveTimer = null;
+
+async function loadState(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      state = Object.assign(structuredClone(DEFAULT_STATE), parsed);
+    }
+  }catch(e){ /* no saved state yet */ }
+  render();
+}
+
+function queueSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async ()=>{
+    try{
+      await window.storage.set(STORAGE_KEY, JSON.stringify(state), false);
+      const n = document.getElementById('saveNote');
+      n.classList.add('show');
+      setTimeout(()=>n.classList.remove('show'), 900);
+    }catch(e){ console.error('save failed', e); }
+  }, 400);
+}
+
+function render(){
+  renderPhase();
+  renderRail();
+  renderDots();
+  renderWrapup();
+  renderRecruiting();
+  renderHabits();
+  renderFitness();
+  renderFinance();
+  renderWriting();
+  renderReading();
+}
+
+function renderPhase(){
+  document.querySelectorAll('#phaseToggle button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.phase === state.phase);
+  });
+}
+
+function renderRail(){
+  const rail = document.getElementById('statusRail');
+  const labels = {wrapup:'Wrap-Up', recruiting:'Recruiting', habits:'Habits', fitness:'Fitness', finance:'Finance', writing:'Writing', reading:'Reading'};
+  rail.innerHTML = Object.entries(state.statusDots).map(([k,v])=>
+    `<div class="rail-chip"><span class="led ${v}"></span>${labels[k]}</div>`
+  ).join('');
+}
+
+function renderDots(){
+  document.querySelectorAll('.status-dot').forEach(dot=>{
+    const key = dot.dataset.key;
+    dot.className = 'status-dot ' + state.statusDots[key];
+    dot.onclick = ()=>{
+      const order = ['green','amber','red'];
+      const cur = order.indexOf(state.statusDots[key]);
+      state.statusDots[key] = order[(cur+1)%3];
+      renderDots(); renderRail(); queueSave();
+    };
+  });
+}
+
+function renderWrapup(){
+  document.querySelectorAll('#card-wrapup textarea').forEach(ta=>{
+    ta.value = state.wrapupText[ta.dataset.field] || '';
+    ta.oninput = ()=>{ state.wrapupText[ta.dataset.field] = ta.value; queueSave(); };
+  });
+}
+
+function renderRecruiting(){
+  const body = document.getElementById('recruitBody');
+  body.innerHTML = state.recruiting.map((r,i)=>`
+    <tr>
+      <td><input type="text" value="${escapeAttr(r.company)}" data-i="${i}" data-f="company"></td>
+      <td><input type="text" value="${escapeAttr(r.role)}" data-i="${i}" data-f="role"></td>
+      <td><select data-i="${i}" data-f="stage">
+        ${['Researching','Applied','OA','Interviewing','Offer','Closed'].map(s=>`<option ${r.stage===s?'selected':''}>${s}</option>`).join('')}
+      </select></td>
+      <td><input type="date" value="${r.deadline||''}" data-i="${i}" data-f="deadline"></td>
+      <td><button class="icon-btn" data-i="${i}" data-del="recruiting">&times;</button></td>
+    </tr>`).join('');
+  body.querySelectorAll('input,select').forEach(el=>{
+    el.oninput = ()=>{ state.recruiting[el.dataset.i][el.dataset.f] = el.value; queueSave(); };
+  });
+  body.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.onclick = ()=>{ state.recruiting.splice(btn.dataset.i,1); renderRecruiting(); queueSave(); };
+  });
+}
+document.getElementById('addRecruit').onclick = ()=>{
+  state.recruiting.push({company:'', role:'', stage:'Researching', deadline:''});
+  renderRecruiting(); queueSave();
+};
+
+function renderHabits(){
+  const wrap = document.getElementById('habitList');
+  const days = ['M','T','W','T','F','S','S'];
+  wrap.innerHTML = state.habits.map((h,i)=>`
+    <div class="habit-name-row">
+      <input type="text" value="${escapeAttr(h.name)}" data-i="${i}" data-hf="name">
+      <button class="icon-btn" data-i="${i}" data-hdel="1">&times;</button>
+    </div>
+    <div class="habit-grid" style="margin-bottom:10px;">
+      <div></div>
+      ${days.map(d=>`<div class="dh">${d}</div>`).join('')}
+      <div></div>
+      ${h.days.map((v,di)=>`<input type="checkbox" ${v?'checked':''} data-i="${i}" data-di="${di}">`).join('')}
+    </div>`).join('');
+  wrap.querySelectorAll('input[type=text]').forEach(el=>{
+    el.oninput = ()=>{ state.habits[el.dataset.i].name = el.value; queueSave(); };
+  });
+  wrap.querySelectorAll('input[type=checkbox]').forEach(el=>{
+    el.onchange = ()=>{ state.habits[el.dataset.i].days[el.dataset.di] = el.checked; queueSave(); };
+  });
+  wrap.querySelectorAll('[data-hdel]').forEach(btn=>{
+    btn.onclick = ()=>{ state.habits.splice(btn.dataset.i,1); renderHabits(); queueSave(); };
+  });
+}
+document.getElementById('addHabit').onclick = ()=>{
+  state.habits.push({name:'New habit', days:[false,false,false,false,false,false,false]});
+  renderHabits(); queueSave();
+};
+document.getElementById('resetWeek').onclick = ()=>{
+  state.habits.forEach(h=> h.days = h.days.map(()=>false));
+  renderHabits(); queueSave();
+};
+
+function renderFitness(){
+  document.getElementById('proteinTarget').value = state.proteinTarget;
+  document.getElementById('proteinToday').value = state.proteinToday;
+  document.getElementById('trainingLog').value = state.trainingLog;
+  updateProteinBar();
+  document.getElementById('proteinTarget').oninput = e=>{ state.proteinTarget = +e.target.value||0; updateProteinBar(); queueSave(); };
+  document.getElementById('proteinToday').oninput = e=>{ state.proteinToday = +e.target.value||0; updateProteinBar(); queueSave(); };
+  document.getElementById('trainingLog').oninput = e=>{ state.trainingLog = e.target.value; queueSave(); };
+}
+function updateProteinBar(){
+  const pct = state.proteinTarget>0 ? Math.min(100, Math.round(state.proteinToday/state.proteinTarget*100)) : 0;
+  document.getElementById('proteinBar').style.width = pct+'%';
+  document.getElementById('proteinPct').textContent = pct+'% of daily protein target';
+}
+
+function renderFinance(){
+  document.getElementById('emergencyFund').value = state.emergencyFund;
+  document.getElementById('investingMonth').value = state.investingMonth;
+  document.getElementById('internPay').value = state.internPay;
+  document.getElementById('financeNotes').value = state.financeNotes;
+  document.getElementById('emergencyFund').oninput = e=>{ state.emergencyFund=+e.target.value||0; queueSave(); };
+  document.getElementById('investingMonth').oninput = e=>{ state.investingMonth=+e.target.value||0; queueSave(); };
+  document.getElementById('internPay').oninput = e=>{ state.internPay=+e.target.value||0; queueSave(); };
+  document.getElementById('financeNotes').oninput = e=>{ state.financeNotes=e.target.value; queueSave(); };
+}
+
+function renderWriting(){
+  const body = document.getElementById('writingBody');
+  body.innerHTML = state.writing.map((w,i)=>`
+    <tr>
+      <td><input type="text" value="${escapeAttr(w.title)}" data-i="${i}" data-f="title"></td>
+      <td><select data-i="${i}" data-f="platform">
+        ${['Medium','Substack','Other/undecided'].map(s=>`<option ${w.platform===s?'selected':''}>${s}</option>`).join('')}
+      </select></td>
+      <td><select data-i="${i}" data-f="status">
+        ${['Idea','Drafting','Editing','Published'].map(s=>`<option ${w.status===s?'selected':''}>${s}</option>`).join('')}
+      </select></td>
+      <td><input type="date" value="${w.date||''}" data-i="${i}" data-f="date"></td>
+      <td><button class="icon-btn" data-i="${i}" data-del="writing">&times;</button></td>
+    </tr>`).join('');
+  body.querySelectorAll('input,select').forEach(el=>{
+    el.oninput = ()=>{ state.writing[el.dataset.i][el.dataset.f] = el.value; queueSave(); };
+  });
+  body.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.onclick = ()=>{ state.writing.splice(btn.dataset.i,1); renderWriting(); queueSave(); };
+  });
+}
+document.getElementById('addWriting').onclick = ()=>{
+  state.writing.push({title:'', platform:'Other/undecided', status:'Idea', date:''});
+  renderWriting(); queueSave();
+};
+
+function renderReading(){
+  const body = document.getElementById('readingBody');
+  body.innerHTML = state.reading.map((r,i)=>`
+    <tr>
+      <td><input type="text" value="${escapeAttr(r.title)}" data-i="${i}" data-f="title"></td>
+      <td><select data-i="${i}" data-f="status">
+        ${['Queued','Reading','Finished'].map(s=>`<option ${r.status===s?'selected':''}>${s}</option>`).join('')}
+      </select></td>
+      <td><button class="icon-btn" data-i="${i}" data-del="reading">&times;</button></td>
+    </tr>`).join('');
+  body.querySelectorAll('input,select').forEach(el=>{
+    el.oninput = ()=>{ state.reading[el.dataset.i][el.dataset.f] = el.value; queueSave(); };
+  });
+  body.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.onclick = ()=>{ state.reading.splice(btn.dataset.i,1); renderReading(); queueSave(); };
+  });
+}
+document.getElementById('addReading').onclick = ()=>{
+  state.reading.push({title:'', status:'Queued'});
+  renderReading(); queueSave();
+};
+
+document.querySelectorAll('#phaseToggle button').forEach(b=>{
+  b.onclick = ()=>{ state.phase = b.dataset.phase; renderPhase(); queueSave(); };
+});
+
+function escapeAttr(s){
+  return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+
+loadState();
+</script>
+</body>
+</html>
